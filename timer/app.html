@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Timer App</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="timers">
+    <h1>Timers</h1>
+    <ul>
+      <li>
+        <input type="button" value="Start" id="start-timer1">
+        <input type="button" value="Stop" id="stop-timer1">
+        <span id="timer1-time"></span>
+      </li>
+      <li>
+        <input type="button" value="Start" id="start-timer2">
+        <input type="button" value="Stop" id="stop-timer2">
+        <span id="timer2-time"></span>
+      </li>
+    </ul>
+  </div>
+  <script>const timers = [];
+
+// Create a timer
+function createTimer(id) {
+  const timer = {
+    timerId: id,
+    currentTime: 0
+  };
+
+  timers.push(timer);
+
+  return timer;
+}
+
+// Start a timer
+function startTimer(timerId) {
+  const timer = timers.find((t) => t.timerId === timerId);
+
+  if (timer) {
+    timer.currentTime = 0;
+
+    // Update the timer every second
+    setInterval(() => {
+      timer.currentTime++;
+
+      // Update the UI
+      document.getElementById(`timer${timer.timerId}-time`).textContent = timer.currentTime;
+    }, 1000);
+  }
+}
+
+// Stop a timer
+function stopTimer(timerId) {
+  const timer = timers.find((t) => t.timerId === timerId);
+
+  if (timer) {
+    // Clear the interval
+ 
+</script>
+</body>
+</html>
