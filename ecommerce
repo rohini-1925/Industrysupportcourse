@@ -230,3 +230,252 @@ root.render(
   </StrictMode>
 );
 ----------------------------------------------------------------------------------------
+styles.css
+
+@import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@300&display=swap");
+
+body {
+  margin: 0;
+  font-family: "Quicksand", sans-serif;
+  background: rgb(42, 42, 54);
+}
+
+button {
+  font-family: "Quicksand", sans-serif;
+}
+
+.App {
+  text-align: center;
+  padding: 20px;
+}
+
+/* Style for the buttons */
+.buttons button {
+  margin: 5px;
+  padding: 10px 20px;
+  font-size: 16px;
+}
+
+/* Style for the columns */
+.columns {
+  display: flex; /* Display columns side by side */
+  justify-content: space-between; /* Space evenly between columns */
+}
+
+/* Style for each individual column */
+.column {
+  flex: 1; /* Equal width for both columns */
+  padding: 20px;
+  border: 1px solid #ccc;
+  margin: 10px;
+}
+
+/* Style for the Cart component inside the right column */
+.column .Cart {
+  background-color: #f5f5f5;
+  padding: 10px;
+  border: 1px solid #ddd;
+}
+
+/* You can add more specific styling as needed */
+----------------------------------------------------------------------------------
+
+cart.css
+
+/* Styling for the Cart component */
+.cart-container {
+  background-color: #f7f7f7;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(32, 32, 32, 0.2);
+  width: 300px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.cart-container h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #000;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.product-image {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  margin-right: 15px;
+  border-radius: 8px;
+}
+
+.product-name {
+  font-weight: bold;
+  font-size: 16px;
+  color: #333;
+}
+
+.product-price {
+  font-size: 14px;
+  color: #555;
+}
+
+.product-quantity {
+  font-size: 14px;
+  color: #555;
+}
+
+.cart-item-remove {
+  font-size: 14px;
+  color: #e74c3c;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.cart-total {
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 20px;
+  color: #333;
+}
+
+.cart-container .checkout-button {
+  background-color: #667788;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 20px;
+}
+.checkout-button:hover {
+  background-color: rgb(60, 94, 119);
+}
+---------------------------------------------------------------
+inventory.css
+
+import React, { useState } from "react";
+import "./css/Inventory.css";
+
+function Inventory({ inventory, setInventory }) {
+  const [productName, setProductName] = useState("");
+  const [quantity, setQuantity] = useState(0);
+  const [price, setPrice] = useState(0);
+
+  const handleAddProduct = () => {
+    if (productName && quantity > 0 && price > 0) {
+      const newProduct = {
+        name: productName,
+        quantity: quantity,
+        price: price
+      };
+      setInventory([...inventory, newProduct]);
+      setProductName("");
+      setQuantity(0);
+      setPrice(0);
+    }
+  };
+
+  return (
+    <div className="inventory-container">
+      <h2>Add Products to Inventory</h2>
+      <div className="input-container">
+        <label>Name:</label>
+        <input
+          type="text"
+          value={productName}
+          onChange={(e) => setProductName(e.target.value)}
+        />
+      </div>
+      <div className="input-container">
+        <label>Quantity:</label>
+        <input
+          type="number"
+          value={quantity}
+          onChange={(e) => setQuantity(e.target.value)}
+        />
+      </div>
+      <div className="input-container">
+        <label>Price:</label>
+        <input
+          type="number"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+        />
+      </div>
+      <button className="add-button" onClick={handleAddProduct}>
+        Add Product
+      </button>
+    </div>
+  );
+}
+
+export default Inventory;
+-------------------------------------------------------------------------------------
+productlist.css
+
+import React from "react";
+import "./css/ProductList.css"; // Import your CSS file
+
+function ProductList({ inventory, cart, setCart, setInventory }) {
+  const handleAddToCart = (product) => {
+    if (product.quantity > 0) {
+      const updatedCart = [...cart];
+      const updatedInventory = [...inventory];
+
+      // Find the product in the cart
+      const cartProductIndex = updatedCart.findIndex(
+        (item) => item.name === product.name
+      );
+
+      if (cartProductIndex !== -1) {
+        // If the product is already in the cart, increase its quantity
+        updatedCart[cartProductIndex].cartQuantity += 1;
+      } else {
+        // If the product is not in the cart, add it with a quantity of 1
+        updatedCart.push({ ...product, cartQuantity: 1 });
+      }
+
+      // Decrement the product's quantity in the inventory
+      const inventoryProductIndex = updatedInventory.findIndex(
+        (p) => p.name === product.name
+      );
+      if (inventoryProductIndex !== -1) {
+        updatedInventory[inventoryProductIndex].quantity -= 1;
+      }
+
+      setCart(updatedCart);
+      setInventory(updatedInventory);
+    }
+  };
+
+  return (
+    <div className="product-list">
+      <h2>Products</h2>
+      <div className="product-cards">
+        {inventory.map((product, index) => (
+          <div key={index} className="product-card">
+            <div className="product-info">
+              <p>{product.name}</p>
+              <p>In Stock: {product.quantity}</p>
+              <p>Price: INR {product.price}</p>
+            </div>
+            <button
+              className="add-to-cart-button"
+              onClick={() => handleAddToCart(product)}
+            >
+              Add to Cart
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default ProductList;
