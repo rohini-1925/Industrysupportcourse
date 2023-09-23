@@ -1,210 +1,232 @@
 app.js:
--------
-import React from "react";
-import "./App.scss";
-import Login from "./components/login/login";
-import Register from "./components/login/register";
 
-// function App() {
-//   return (
-//     <div>
-//       <Login />
-//     </div>
-//   );
-// }
+import React, { useState } from "react";
+import "./styles.css";
+import Inventory from "./Inventory";
+import ProductList from "./ProductList";
+import Cart from "./Cart";
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isLogginActive: true
-    };
-  }
+function App() {
+  const [view, setView] = useState("products");
+  const [inventory, setInventory] = useState([]);
+  const [cart, setCart] = useState([]);
 
-  componentDidMount() {
-    //Add .right by default
-    this.rightSide.classList.add("right");
-  }
+  const switchView = (newView) => {
+    setView(newView);
+  };
 
-  changeState() {
-    const { isLogginActive } = this.state;
-
-    if (isLogginActive) {
-      this.rightSide.classList.remove("right");
-      this.rightSide.classList.add("left");
-    } else {
-      this.rightSide.classList.remove("left");
-      this.rightSide.classList.add("right");
-    }
-    this.setState(prevState => ({ isLogginActive: !prevState.isLogginActive }));
-  }
-
-  render() {
-    const { isLogginActive } = this.state;
-    const current = isLogginActive ? "Register" : "Login";
-    const currentActive = isLogginActive ? "login" : "register";
-    return (
-      <div className="App">
-        <div className="login">
-          <div className="container" ref={ref => (this.container = ref)}>
-            {isLogginActive && (
-              <Login containerRef={ref => (this.current = ref)} />
-            )}
-            {!isLogginActive && (
-              <Register containerRef={ref => (this.current = ref)} />
-            )}
-          </div>
-          <RightSide
-            current={current}
-            currentActive={currentActive}
-            containerRef={ref => (this.rightSide = ref)}
-            onClick={this.changeState.bind(this)}
-          />
-        </div>
-      </div>
-    );
-  }
-}
-
-const RightSide = props => {
   return (
-    <div
-      className="right-side"
-      ref={props.containerRef}
-      onClick={props.onClick}
-    >
-      <div className="inner-container">
-        <div className="text">{props.current}</div>
+    <div className="App">
+      <div className="buttons">
+        <button onClick={() => switchView("products")}>Products</button>
+        <button onClick={() => switchView("inventory")}>Inventory</button>
+      </div>
+      <div className="columns">
+        <div className="column">
+          {view === "products" && (
+            <ProductList
+              inventory={inventory}
+              cart={cart}
+              setCart={setCart}
+              setInventory={setInventory}
+            />
+          )}
+          {view === "inventory" && (
+            <Inventory inventory={inventory} setInventory={setInventory} />
+          )}
+        </div>
+        <div className="column">
+          <Cart cart={cart} setCart={setCart} />
+        </div>
       </div>
     </div>
   );
-};
+}
 
 export default App;
+-------------------------------------------------------------------------------------------------------
 
-app.css
--------
-//Custom Fonts
-@import url("https://fonts.googleapis.com/css?family=Open+Sans&display=swap");
+cart.js:
+import React from "react";
+import "./css/Cart.css"; // Import your CSS file
 
-.App {
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-family: "Open Sans", sans-serif;
+function Cart({ cart, setCart }) {
+  const removeFromCart = (product) => {
+    const updatedCart = cart.filter((item) => item.name !== product.name);
+    setCart(updatedCart);
+  };
+
+  const calculateTotalPrice = () => {
+    return cart.reduce(
+      (total, product) => total + product.price * product.cartQuantity,
+      0
+    );
+  };
+
+  return (
+    <div className="cart-container">
+      <h2>Your Cart</h2>
+      {cart.map((product, index) => (
+        <div key={index} className="cart-item">
+          <div className="cart-item-info">
+            <p className="product-name">{product.name}</p>
+            <p className="product-price">Price: INR {product.price}</p>
+            <p className="product-quantity">Quantity: {product.cartQuantity}</p>
+          </div>
+          <span
+            className="cart-item-remove"
+            onClick={() => removeFromCart(product)}
+          >
+            Remove
+          </span>
+        </div>
+      ))}
+      <div className="cart-total">Total: INR {calculateTotalPrice()}</div>
+      <button className="checkout-button">Checkout</button>
+    </div>
+  );
 }
 
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 40vmin;
-  pointer-events: none;
+export default Cart;
+-----------------------------------------------------------------------------------------------
+inventory.js:
+
+import React, { useState } from "react";
+import "./css/Inventory.css";
+
+function Inventory({ inventory, setInventory }) {
+  const [productName, setProductName] = useState("");
+  const [quantity, setQuantity] = useState(0);
+  const [price, setPrice] = useState(0);
+
+  const handleAddProduct = () => {
+    if (productName && quantity > 0 && price > 0) {
+      const newProduct = {
+        name: productName,
+        quantity: quantity,
+        price: price
+      };
+      setInventory([...inventory, newProduct]);
+      setProductName("");
+      setQuantity(0);
+      setPrice(0);
+    }
+  };
+
+  return (
+    <div className="inventory-container">
+      <h2>Add Products to Inventory</h2>
+      <div className="input-container">
+        <label>Name:</label>
+        <input
+          type="text"
+          value={productName}
+          onChange={(e) => setProductName(e.target.value)}
+        />
+      </div>
+      <div className="input-container">
+        <label>Quantity:</label>
+        <input
+          type="number"
+          value={quantity}
+          onChange={(e) => setQuantity(e.target.value)}
+        />
+      </div>
+      <div className="input-container">
+        <label>Price:</label>
+        <input
+          type="number"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+        />
+      </div>
+      <button className="add-button" onClick={handleAddProduct}>
+        Add Product
+      </button>
+    </div>
+  );
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
+export default Inventory;
+----------------------------------------------------------------------------------
 
-.App-link {
-  color: #61dafb;
-}
+productlist.js
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
+import React from "react";
+import "./css/ProductList.css"; // Import your CSS file
 
-//Login Main Container
-.login {
-  width: 27em;
-  height: 40em;
-  //min-height: 44em;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 5px;
-  position: relative;
-  z-index: 99;
-  .container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #fff;
-    box-shadow: 0px 0px 12px 2px rgba(15, 15, 15, 0.2);
-    border-radius: 4px;
-    position: relative;
-    z-index: 99;
-    width: 100%;
-    height: 100%;
-    z-index: 99;
-    padding: 17px 10px;
-    //transition: transform 200ms ease-in-out;
-  }
-  .right-side {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    height: 90%;
-    background-color: #3498db;
-    width: 100%;
-    position: absolute;
-    right: -34%;
-    border-radius: 6px;
-    z-index: 1;
-    transition: all 400ms ease-in-out;
-    cursor: pointer;
-    box-shadow: 0px 0px 12px 2px rgba(15, 15, 15, 0.281);
+function ProductList({ inventory, cart, setCart, setInventory }) {
+  const handleAddToCart = (product) => {
+    if (product.quantity > 0) {
+      const updatedCart = [...cart];
+      const updatedInventory = [...inventory];
 
-    &.right {
-      right: -40%;
-      align-items: flex-end;
-      &:hover {
-        right: -45%;
+      // Find the product in the cart
+      const cartProductIndex = updatedCart.findIndex(
+        (item) => item.name === product.name
+      );
+
+      if (cartProductIndex !== -1) {
+        // If the product is already in the cart, increase its quantity
+        updatedCart[cartProductIndex].cartQuantity += 1;
+      } else {
+        // If the product is not in the cart, add it with a quantity of 1
+        updatedCart.push({ ...product, cartQuantity: 1 });
       }
-    }
-    &.left {
-      right: 40%;
-      align-items: flex-start;
-      &:hover {
-        right: 45%;
+
+      // Decrement the product's quantity in the inventory
+      const inventoryProductIndex = updatedInventory.findIndex(
+        (p) => p.name === product.name
+      );
+      if (inventoryProductIndex !== -1) {
+        updatedInventory[inventoryProductIndex].quantity -= 1;
       }
-    }
 
-    .text {
-      font-size: 21px;
-      font-weight: 500;
-      color: #fff;
-      margin-right: 3em;
-      margin-left: 3em;
+      setCart(updatedCart);
+      setInventory(updatedInventory);
     }
-  }
+  };
+
+  return (
+    <div className="product-list">
+      <h2>Products</h2>
+      <div className="product-cards">
+        {inventory.map((product, index) => (
+          <div key={index} className="product-card">
+            <div className="product-info">
+              <p>{product.name}</p>
+              <p>In Stock: {product.quantity}</p>
+              <p>Price: INR {product.price}</p>
+            </div>
+            <button
+              className="add-to-cart-button"
+              onClick={() => handleAddToCart(product)}
+            >
+              Add to Cart
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
-//Button
-.btn {
-  font-size: 21px;
-  padding: 5px 20px;
-  border: 0;
-  background-color: #3498db;
-  color: #fff;
-  border-radius: 3px;
-  transition: all 250ms ease-in-out;
-  cursor: pointer;
-  &:hover {
-    background-color: #2386c8;
-  }
-  &:focus {
-    outline: none;
-  }
-}
+export default ProductList;
+--------------------------------------------------------------------------------------------
+
+index.js
+
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+
+import App from "./App";
+
+const rootElement = document.getElementById("root");
+const root = createRoot(rootElement);
+
+root.render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);
+----------------------------------------------------------------------------------------
